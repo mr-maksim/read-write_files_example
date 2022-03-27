@@ -3,23 +3,30 @@ import config
 
 
 def menu():
-    # print(f'{"_"*15}Добро пожаловать{"_"*15}')
-    print_main_menu()
     while True:
-        try:
-            choose = int(input('Введите номер нужного пункта: '))
-            break
-        except:
-            print("Вы ввели некорректные данные")
-    if choose == 1:
-        clear()
-        dishes_list(open_recipt(config.RECIPT_PATH))
-    elif choose == 0:
-        exit()
+        print_main_menu()
+        while True:
+            try:
+                choose = int(input('Введите номер нужного пункта: '))
+                break
+            except:
+                print("Вы ввели некорректные данные")
+        if choose == 1:
+            clear()
+            dishes_list(open_recipt(config.RECIPT_PATH))
+        elif choose == 2:
+            clear()
+            print(shop_list())
+        elif choose == 3:
+            clear()
+            print(open_recipt(config.RECIPT_PATH))
+        elif choose == 0:
+            exit()
 
 
 def print_main_menu():
-    menu_list = ["1 - Просмотр списка блюд", "0 - Exit"]
+    menu_list = ["1 - Просмотр списка блюд", "2 - Получить список покупок",
+                 "3 - Вывести словарь 'cook_book'", "0 - Exit"]
     for item in menu_list:
         print(item)
 
@@ -29,6 +36,33 @@ def dishes_list(cook_book):
         print(f'{num + 1}) {item}')
     print('\n')
     menu()
+
+
+def shop_list():
+    clear()
+    dishes_list = input(
+        "Введите через запятую наименования блюд:\n").split(',')
+    person = int(input("Введите количество человек:\n"))
+    clear()
+    result = get_shop_list_by_dishes(dishes_list, person)
+    return result
+
+
+def get_shop_list_by_dishes(dishes, person):
+    result = {}
+    cook_book = open_recipt(config.RECIPT_PATH)
+    for item in dishes:
+        if item in cook_book:
+            for ingridient in cook_book[item]:
+                if ingridient["ingridient_name"] not in result:
+                    result[ingridient["ingridient_name"]] = dict((('measure', str(
+                        ingridient["measure"])), ('quantity', ingridient["quantity"] * person)))
+                else:
+                    result[ingridient["ingridient_name"]] = dict((('measure', str(ingridient["measure"])), ('quantity', str(
+                        ((ingridient["quantity"] * person) + result[ingridient["ingridient_name"]]['quantity'])))))
+        else:
+            print(f'Блюдо "{item}" не найдено')
+    return(result)
 
 
 def open_recipt(recipt_path):
@@ -42,7 +76,7 @@ def open_recipt(recipt_path):
                 line_split = file.readline().strip().split('|')
                 cook_book[dishes].append(dict([
                     ('ingridient_name', line_split[0]),
-                    ('quantity', line_split[1]),
+                    ('quantity', int(line_split[1])),
                     ('measure', line_split[2]),
                 ]))
             file.readline()
@@ -57,4 +91,5 @@ def clear():
 
 
 if __name__ == "__main__":
+    clear()
     menu()
